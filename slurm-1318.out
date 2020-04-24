@@ -1,0 +1,133 @@
+#!/bin/bash
+#SBATCH --nodes=1               # number of nodes
+#SBATCH --ntasks-per-node=4     # number of tasks per node
+#SBATCH --ntasks-per-socket=2   # number of tasks per socket
+#SBATCH --cpus-per-task=32      # number of HW threads per task (equal to OMP_NUM_THREADS*4)
+#SBATCH --mem=230000MB
+#SBATCH --time 01:00:00         # format: HH:MM:SS
+#SBATCH -A cin_preM100 
+#SBATCH -p system
+
+cat run_me.sh
+
+module load profile/global pgi/19.10--binary gnu/8.4.0 fftw/3.3.8--gnu--8.4.0 cuda/10.1
+
+
+# PGI + Internal Blas
+mpif90 -mp test.f90 -lblas -o pgi_blas.x
+
+for i in {1..16} {18..32..2} {36..128..4}
+do
+    export OMP_NUM_THREADS=$i
+    mpirun -np 1  ./pgi_blas.x 2000 2000  | tr '\n' '\t'
+    echo
+done 
+
+echo '=== OpenBLAS ==='
+mpif90 -mp test.f90 -o pgi_openblas.x -L./openblas/lib -lopenblas
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:`pwd`/openblas/lib
+
+for i in {1..16} {18..32..2} {36..128..4}
+do
+    export OMP_NUM_THREADS=$i
+    mpirun -np 1 ./pgi_openblas.x 2000 2000  | tr '\n' '\t'
+    echo
+done 
+
+ ****Parallel Matrix Multiplication****	 Number of cores:             1	Time to create matrix:    0.895 s.	Triple do-loop with threads:    0.021 s.	Matmul(a,b):    0.000 s.	DGEMM:    0.929 s.	DGEMM AVG:    0.929 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:             2	Time to create matrix:    0.921 s.	Triple do-loop with threads:    0.022 s.	Matmul(a,b):    0.000 s.	DGEMM:    0.914 s.	DGEMM AVG:    0.914 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:             3	Time to create matrix:    0.905 s.	Triple do-loop with threads:    0.021 s.	Matmul(a,b):    0.000 s.	DGEMM:    1.225 s.	DGEMM AVG:    1.225 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:             4	Time to create matrix:    0.899 s.	Triple do-loop with threads:    0.022 s.	Matmul(a,b):    0.000 s.	DGEMM:    0.932 s.	DGEMM AVG:    0.932 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:             5	Time to create matrix:    0.963 s.	Triple do-loop with threads:    0.021 s.	Matmul(a,b):    0.000 s.	DGEMM:    1.008 s.	DGEMM AVG:    1.008 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:             6	Time to create matrix:    0.918 s.	Triple do-loop with threads:    0.022 s.	Matmul(a,b):    0.000 s.	DGEMM:    1.004 s.	DGEMM AVG:    1.004 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:             7	Time to create matrix:    0.922 s.	Triple do-loop with threads:    0.022 s.	Matmul(a,b):    0.000 s.	DGEMM:    1.008 s.	DGEMM AVG:    1.008 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:             8	Time to create matrix:    0.920 s.	Triple do-loop with threads:    0.022 s.	Matmul(a,b):    0.000 s.	DGEMM:    0.986 s.	DGEMM AVG:    0.986 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:             9	Time to create matrix:    0.915 s.	Triple do-loop with threads:    0.022 s.	Matmul(a,b):    0.000 s.	DGEMM:    0.990 s.	DGEMM AVG:    0.990 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:            10	Time to create matrix:    0.899 s.	Triple do-loop with threads:    0.021 s.	Matmul(a,b):    0.000 s.	DGEMM:    1.008 s.	DGEMM AVG:    1.008 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:            11	Time to create matrix:    0.919 s.	Triple do-loop with threads:    0.022 s.	Matmul(a,b):    0.000 s.	DGEMM:    1.037 s.	DGEMM AVG:    1.037 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:            12	Time to create matrix:    0.889 s.	Triple do-loop with threads:    0.021 s.	Matmul(a,b):    0.000 s.	DGEMM:    1.027 s.	DGEMM AVG:    1.027 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:            13	Time to create matrix:    0.900 s.	Triple do-loop with threads:    0.021 s.	Matmul(a,b):    0.000 s.	DGEMM:    1.036 s.	DGEMM AVG:    1.036 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:            14	Time to create matrix:    0.919 s.	Triple do-loop with threads:    0.022 s.	Matmul(a,b):    0.000 s.	DGEMM:    1.027 s.	DGEMM AVG:    1.027 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:            15	Time to create matrix:    0.895 s.	Triple do-loop with threads:    0.020 s.	Matmul(a,b):    0.000 s.	DGEMM:    1.029 s.	DGEMM AVG:    1.029 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:            16	Time to create matrix:    0.895 s.	Triple do-loop with threads:    0.020 s.	Matmul(a,b):    0.000 s.	DGEMM:    1.051 s.	DGEMM AVG:    1.051 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:            18	Time to create matrix:    0.897 s.	Triple do-loop with threads:    0.020 s.	Matmul(a,b):    0.000 s.	DGEMM:    1.022 s.	DGEMM AVG:    1.022 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:            20	Time to create matrix:    0.913 s.	Triple do-loop with threads:    0.021 s.	Matmul(a,b):    0.000 s.	DGEMM:    1.037 s.	DGEMM AVG:    1.037 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:            22	Time to create matrix:    0.922 s.	Triple do-loop with threads:    0.022 s.	Matmul(a,b):    0.000 s.	DGEMM:    1.058 s.	DGEMM AVG:    1.058 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:            24	Time to create matrix:    0.896 s.	Triple do-loop with threads:    0.021 s.	Matmul(a,b):    0.000 s.	DGEMM:    1.051 s.	DGEMM AVG:    1.051 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:            26	Time to create matrix:    0.918 s.	Triple do-loop with threads:    0.022 s.	Matmul(a,b):    0.000 s.	DGEMM:    1.108 s.	DGEMM AVG:    1.108 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:            28	Time to create matrix:    0.912 s.	Triple do-loop with threads:    0.022 s.	Matmul(a,b):    0.000 s.	DGEMM:    1.055 s.	DGEMM AVG:    1.055 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:            30	Time to create matrix:    0.896 s.	Triple do-loop with threads:    0.021 s.	Matmul(a,b):    0.000 s.	DGEMM:    1.132 s.	DGEMM AVG:    1.132 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:            32	Time to create matrix:    0.901 s.	Triple do-loop with threads:    0.020 s.	Matmul(a,b):    0.000 s.	DGEMM:    1.135 s.	DGEMM AVG:    1.135 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:            36	Time to create matrix:    0.916 s.	Triple do-loop with threads:    0.022 s.	Matmul(a,b):    0.000 s.	DGEMM:    1.149 s.	DGEMM AVG:    1.149 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:            40	Time to create matrix:    0.902 s.	Triple do-loop with threads:    0.020 s.	Matmul(a,b):    0.000 s.	DGEMM:    1.110 s.	DGEMM AVG:    1.110 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:            44	Time to create matrix:    0.920 s.	Triple do-loop with threads:    0.021 s.	Matmul(a,b):    0.000 s.	DGEMM:    1.184 s.	DGEMM AVG:    1.184 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:            48	Time to create matrix:    0.891 s.	Triple do-loop with threads:    0.020 s.	Matmul(a,b):    0.000 s.	DGEMM:    1.218 s.	DGEMM AVG:    1.218 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:            52	Time to create matrix:    0.899 s.	Triple do-loop with threads:    0.021 s.	Matmul(a,b):    0.000 s.	DGEMM:    1.168 s.	DGEMM AVG:    1.168 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:            56	Time to create matrix:    0.902 s.	Triple do-loop with threads:    0.020 s.	Matmul(a,b):    0.000 s.	DGEMM:    1.205 s.	DGEMM AVG:    1.205 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:            60	Time to create matrix:    1.034 s.	Triple do-loop with threads:    0.020 s.	Matmul(a,b):    0.000 s.	DGEMM:    1.282 s.	DGEMM AVG:    1.282 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:            64	Time to create matrix:    0.889 s.	Triple do-loop with threads:    0.021 s.	Matmul(a,b):    0.000 s.	DGEMM:    1.310 s.	DGEMM AVG:    1.310 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:            68	Time to create matrix:    0.897 s.	Triple do-loop with threads:    0.020 s.	Matmul(a,b):    0.000 s.	DGEMM:    1.380 s.	DGEMM AVG:    1.380 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:            72	Time to create matrix:    0.893 s.	Triple do-loop with threads:    0.021 s.	Matmul(a,b):    0.000 s.	DGEMM:    1.294 s.	DGEMM AVG:    1.294 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:            76	Time to create matrix:    0.893 s.	Triple do-loop with threads:    0.020 s.	Matmul(a,b):    0.000 s.	DGEMM:    1.245 s.	DGEMM AVG:    1.245 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:            80	Time to create matrix:    0.899 s.	Triple do-loop with threads:    0.020 s.	Matmul(a,b):    0.000 s.	DGEMM:    1.299 s.	DGEMM AVG:    1.299 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:            84	Time to create matrix:    0.893 s.	Triple do-loop with threads:    0.021 s.	Matmul(a,b):    0.000 s.	DGEMM:    1.375 s.	DGEMM AVG:    1.375 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:            88	Time to create matrix:    0.920 s.	Triple do-loop with threads:    0.021 s.	Matmul(a,b):    0.000 s.	DGEMM:    1.418 s.	DGEMM AVG:    1.418 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:            92	Time to create matrix:    0.917 s.	Triple do-loop with threads:    0.022 s.	Matmul(a,b):    0.000 s.	DGEMM:    1.452 s.	DGEMM AVG:    1.452 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:            96	Time to create matrix:    0.911 s.	Triple do-loop with threads:    0.022 s.	Matmul(a,b):    0.000 s.	DGEMM:    1.465 s.	DGEMM AVG:    1.465 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:           100	Time to create matrix:    0.919 s.	Triple do-loop with threads:    0.021 s.	Matmul(a,b):    0.000 s.	DGEMM:    1.468 s.	DGEMM AVG:    1.468 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:           104	Time to create matrix:    0.897 s.	Triple do-loop with threads:    0.020 s.	Matmul(a,b):    0.000 s.	DGEMM:    1.558 s.	DGEMM AVG:    1.558 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:           108	Time to create matrix:    0.914 s.	Triple do-loop with threads:    0.022 s.	Matmul(a,b):    0.000 s.	DGEMM:    1.653 s.	DGEMM AVG:    1.653 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:           112	Time to create matrix:    0.900 s.	Triple do-loop with threads:    0.020 s.	Matmul(a,b):    0.000 s.	DGEMM:    1.673 s.	DGEMM AVG:    1.673 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:           116	Time to create matrix:    0.914 s.	Triple do-loop with threads:    0.021 s.	Matmul(a,b):    0.000 s.	DGEMM:    1.712 s.	DGEMM AVG:    1.712 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:           120	Time to create matrix:    1.081 s.	Triple do-loop with threads:    0.021 s.	Matmul(a,b):    0.000 s.	DGEMM:    1.530 s.	DGEMM AVG:    1.530 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:           124	Time to create matrix:    0.894 s.	Triple do-loop with threads:    0.020 s.	Matmul(a,b):    0.000 s.	DGEMM:    1.380 s.	DGEMM AVG:    1.380 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:           128	Time to create matrix:    0.897 s.	Triple do-loop with threads:    0.020 s.	Matmul(a,b):    0.000 s.	DGEMM:    1.396 s.	DGEMM AVG:    1.396 s.	
+=== OpenBLAS ===
+ ****Parallel Matrix Multiplication****	 Number of cores:             1	Time to create matrix:    0.889 s.	Triple do-loop with threads:    0.020 s.	Matmul(a,b):    0.000 s.	DGEMM:    0.713 s.	DGEMM AVG:    0.713 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:             2	Time to create matrix:    0.892 s.	Triple do-loop with threads:    0.021 s.	Matmul(a,b):    0.000 s.	DGEMM:    0.851 s.	DGEMM AVG:    0.851 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:             3	Time to create matrix:    0.898 s.	Triple do-loop with threads:    0.021 s.	Matmul(a,b):    0.000 s.	DGEMM:    1.029 s.	DGEMM AVG:    1.029 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:             4	Time to create matrix:    0.891 s.	Triple do-loop with threads:    0.021 s.	Matmul(a,b):    0.000 s.	DGEMM:    0.896 s.	DGEMM AVG:    0.896 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:             5	Time to create matrix:    0.900 s.	Triple do-loop with threads:    0.021 s.	Matmul(a,b):    0.000 s.	DGEMM:    1.033 s.	DGEMM AVG:    1.033 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:             6	Time to create matrix:    0.938 s.	Triple do-loop with threads:    0.022 s.	Matmul(a,b):    0.000 s.	DGEMM:    0.918 s.	DGEMM AVG:    0.918 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:             7	Time to create matrix:    0.893 s.	Triple do-loop with threads:    0.021 s.	Matmul(a,b):    0.000 s.	DGEMM:    0.915 s.	DGEMM AVG:    0.915 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:             8	Time to create matrix:    0.888 s.	Triple do-loop with threads:    0.020 s.	Matmul(a,b):    0.000 s.	DGEMM:    0.917 s.	DGEMM AVG:    0.917 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:             9	Time to create matrix:    0.971 s.	Triple do-loop with threads:    0.021 s.	Matmul(a,b):    0.000 s.	DGEMM:    0.960 s.	DGEMM AVG:    0.960 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:            10	Time to create matrix:    1.121 s.	Triple do-loop with threads:    0.021 s.	Matmul(a,b):    0.000 s.	DGEMM:    0.925 s.	DGEMM AVG:    0.925 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:            11	Time to create matrix:    0.891 s.	Triple do-loop with threads:    0.021 s.	Matmul(a,b):    0.000 s.	DGEMM:    1.028 s.	DGEMM AVG:    1.028 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:            12	Time to create matrix:    0.887 s.	Triple do-loop with threads:    0.021 s.	Matmul(a,b):    0.000 s.	DGEMM:    0.910 s.	DGEMM AVG:    0.910 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:            13	Time to create matrix:    0.930 s.	Triple do-loop with threads:    0.022 s.	Matmul(a,b):    0.000 s.	DGEMM:    1.169 s.	DGEMM AVG:    1.169 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:            14	Time to create matrix:    0.929 s.	Triple do-loop with threads:    0.021 s.	Matmul(a,b):    0.000 s.	DGEMM:    1.355 s.	DGEMM AVG:    1.355 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:            15	Time to create matrix:    0.929 s.	Triple do-loop with threads:    0.022 s.	Matmul(a,b):    0.000 s.	DGEMM:    1.420 s.	DGEMM AVG:    1.420 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:            16	Time to create matrix:    0.937 s.	Triple do-loop with threads:    0.022 s.	Matmul(a,b):    0.000 s.	DGEMM:    1.246 s.	DGEMM AVG:    1.246 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:            18	Time to create matrix:    0.937 s.	Triple do-loop with threads:    0.022 s.	Matmul(a,b):    0.000 s.	DGEMM:    1.495 s.	DGEMM AVG:    1.495 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:            20	Time to create matrix:    0.884 s.	Triple do-loop with threads:    0.020 s.	Matmul(a,b):    0.000 s.	DGEMM:    1.447 s.	DGEMM AVG:    1.447 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:            22	Time to create matrix:    0.888 s.	Triple do-loop with threads:    0.020 s.	Matmul(a,b):    0.000 s.	DGEMM:    1.713 s.	DGEMM AVG:    1.713 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:            24	Time to create matrix:    0.935 s.	Triple do-loop with threads:    0.022 s.	Matmul(a,b):    0.000 s.	DGEMM:    1.802 s.	DGEMM AVG:    1.802 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:            26	Time to create matrix:    0.883 s.	Triple do-loop with threads:    0.021 s.	Matmul(a,b):    0.000 s.	DGEMM:    2.089 s.	DGEMM AVG:    2.089 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:            28	Time to create matrix:    0.923 s.	Triple do-loop with threads:    0.020 s.	Matmul(a,b):    0.000 s.	DGEMM:    1.928 s.	DGEMM AVG:    1.928 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:            30	Time to create matrix:    0.930 s.	Triple do-loop with threads:    0.022 s.	Matmul(a,b):    0.000 s.	DGEMM:    2.041 s.	DGEMM AVG:    2.041 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:            32	Time to create matrix:    0.891 s.	Triple do-loop with threads:    0.020 s.	Matmul(a,b):    0.000 s.	DGEMM:    2.131 s.	DGEMM AVG:    2.131 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:            36	Time to create matrix:    0.930 s.	Triple do-loop with threads:    0.021 s.	Matmul(a,b):    0.000 s.	DGEMM:    2.151 s.	DGEMM AVG:    2.151 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:            40	Time to create matrix:    0.882 s.	Triple do-loop with threads:    0.020 s.	Matmul(a,b):    0.000 s.	DGEMM:    2.449 s.	DGEMM AVG:    2.449 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:            44	Time to create matrix:    0.897 s.	Triple do-loop with threads:    0.020 s.	Matmul(a,b):    0.000 s.	DGEMM:    2.794 s.	DGEMM AVG:    2.794 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:            48	Time to create matrix:    0.891 s.	Triple do-loop with threads:    0.021 s.	Matmul(a,b):    0.000 s.	DGEMM:    3.105 s.	DGEMM AVG:    3.105 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:            52	Time to create matrix:    0.887 s.	Triple do-loop with threads:    0.020 s.	Matmul(a,b):    0.000 s.	DGEMM:    3.304 s.	DGEMM AVG:    3.304 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:            56	Time to create matrix:    0.887 s.	Triple do-loop with threads:    0.021 s.	Matmul(a,b):    0.000 s.	DGEMM:    3.895 s.	DGEMM AVG:    3.895 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:            60	Time to create matrix:    0.931 s.	Triple do-loop with threads:    0.022 s.	Matmul(a,b):    0.000 s.	DGEMM:    4.192 s.	DGEMM AVG:    4.192 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:            64	Time to create matrix:    0.931 s.	Triple do-loop with threads:    0.022 s.	Matmul(a,b):    0.000 s.	DGEMM:    4.225 s.	DGEMM AVG:    4.225 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:            68	Time to create matrix:    0.890 s.	Triple do-loop with threads:    0.021 s.	Matmul(a,b):    0.000 s.	DGEMM:    4.272 s.	DGEMM AVG:    4.272 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:            72	Time to create matrix:    0.935 s.	Triple do-loop with threads:    0.021 s.	Matmul(a,b):    0.000 s.	DGEMM:    4.842 s.	DGEMM AVG:    4.842 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:            76	Time to create matrix:    1.011 s.	Triple do-loop with threads:    0.020 s.	Matmul(a,b):    0.000 s.	DGEMM:    5.113 s.	DGEMM AVG:    5.113 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:            80	Time to create matrix:    0.891 s.	Triple do-loop with threads:    0.020 s.	Matmul(a,b):    0.000 s.	DGEMM:    5.604 s.	DGEMM AVG:    5.604 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:            84	Time to create matrix:    0.891 s.	Triple do-loop with threads:    0.021 s.	Matmul(a,b):    0.000 s.	DGEMM:    5.788 s.	DGEMM AVG:    5.788 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:            88	Time to create matrix:    0.931 s.	Triple do-loop with threads:    0.021 s.	Matmul(a,b):    0.000 s.	DGEMM:    6.621 s.	DGEMM AVG:    6.621 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:            92	Time to create matrix:    0.929 s.	Triple do-loop with threads:    0.022 s.	Matmul(a,b):    0.000 s.	DGEMM:    6.399 s.	DGEMM AVG:    6.399 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:            96	Time to create matrix:    0.892 s.	Triple do-loop with threads:    0.020 s.	Matmul(a,b):    0.000 s.	DGEMM:    7.034 s.	DGEMM AVG:    7.034 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:           100	Time to create matrix:    0.932 s.	Triple do-loop with threads:    0.022 s.	Matmul(a,b):    0.000 s.	DGEMM:    7.577 s.	DGEMM AVG:    7.577 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:           104	Time to create matrix:    0.888 s.	Triple do-loop with threads:    0.020 s.	Matmul(a,b):    0.000 s.	DGEMM:    7.218 s.	DGEMM AVG:    7.218 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:           108	Time to create matrix:    0.931 s.	Triple do-loop with threads:    0.022 s.	Matmul(a,b):    0.000 s.	DGEMM:    7.431 s.	DGEMM AVG:    7.431 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:           112	Time to create matrix:    0.889 s.	Triple do-loop with threads:    0.020 s.	Matmul(a,b):    0.000 s.	DGEMM:    8.120 s.	DGEMM AVG:    8.120 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:           116	Time to create matrix:    1.050 s.	Triple do-loop with threads:    0.021 s.	Matmul(a,b):    0.000 s.	DGEMM:    8.942 s.	DGEMM AVG:    8.942 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:           120	Time to create matrix:    0.925 s.	Triple do-loop with threads:    0.022 s.	Matmul(a,b):    0.000 s.	DGEMM:    8.411 s.	DGEMM AVG:    8.411 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:           124	Time to create matrix:    0.923 s.	Triple do-loop with threads:    0.022 s.	Matmul(a,b):    0.000 s.	DGEMM:    8.076 s.	DGEMM AVG:    8.076 s.	
+ ****Parallel Matrix Multiplication****	 Number of cores:           128	Time to create matrix:    0.933 s.	Triple do-loop with threads:    0.022 s.	Matmul(a,b):    0.000 s.	DGEMM:    8.559 s.	DGEMM AVG:    8.559 s.	
